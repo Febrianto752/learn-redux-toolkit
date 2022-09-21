@@ -1,5 +1,5 @@
 import "./App.css";
-import { createStore, bindActionCreators } from "redux";
+import { createStore, bindActionCreators, combineReducers } from "redux";
 
 // create action
 const orderCake = () => {
@@ -65,19 +65,24 @@ const iceCreamReducer = (state = initialIceCreamState, action) => {
   switch (action.type) {
     case "ORDER_ICECREAM":
       return {
-        numOfIceCreams: state.numOfIceCream - 1,
+        numOfIceCreams: state.numOfIceCreams - 1,
       };
     case "RESTOCK_ICECREAM":
       return {
-        numOfIceCreams: state.numOfIceCream + action.payload,
+        numOfIceCreams: state.numOfIceCreams + action.payload,
       };
     default:
       return state;
   }
 };
 
+const reducers = combineReducers({
+  cake: cakeReducer,
+  iceCream: iceCreamReducer,
+});
+
 // create store
-const store = createStore(cakeReducer);
+const store = createStore(reducers);
 console.log("Initial State : ", store.getState());
 
 store.subscribe(() => console.log("Updated State : ", store.getState())); // selalu di jalankan ketika dispatch(action())
@@ -85,6 +90,9 @@ store.dispatch(orderCake()); // setiap kali dispatch(action()) maka state akan t
 store.dispatch(orderCake());
 store.dispatch(orderCake());
 store.dispatch(restockCake(5));
+store.dispatch(orderIceCream());
+store.dispatch(orderIceCream());
+store.dispatch(restockIceCream(5));
 
 function App() {
   return <div></div>;
