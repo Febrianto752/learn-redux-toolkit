@@ -1,52 +1,81 @@
 import "./App.css";
-import { applyMiddleware, createStore } from "redux";
-import produce from "immer";
-import logger from "redux-logger";
 
-const changeStreet = (street) => {
+import { createStore, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
+import axios from "axios";
+
+const FETCH_USERS_REQUESTED = "FETCH_USERS_REQUESTED";
+const FETCH_USERS_SUCCESSED = "FETCH_USERS_SUCCESSED";
+const FETCH_USERS_FAILED = "FETCH_USERS_FAILED";
+
+const initialState = {
+  loading: true,
+  users: [],
+  error: "",
+};
+
+const fetchUsersRequest = () => {
   return {
-    type: "CHANGE_STREET",
-    payload: street,
+    type: FETCH_USERS_REQUESTED,
   };
 };
 
-const initialState = {
-  name: "FShop",
-  address: {
-    street: "jl.kambuna",
-    city: "Bekasi",
-    country: "Indonesian",
-  },
+const fetchUsersSuccess = (users) => {
+  return {
+    type: FETCH_USERS_SUCCESSED,
+    payload: users,
+  };
 };
 
-const shopReducer = (state = initialState, action) => {
+const fetchUsersFailure = (error) => {
+  return {
+    type: FETCH_USERS_FAILED,
+    payload: error,
+  };
+};
+
+const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case "CHANGE_STREET":
-      // Sebelum memakai immer
-      // return {
-      //   ...state,
-      //   address: {
-      //     ...state.address,
-      //     street: action.payload,
-      //   },
-      // };
-      // Sesudah memakai immer
-      return produce(state, (draft) => {
-        draft.address.street = action.payload;
-      });
+    case FETCH_USERS_REQUESTED:
+      return {
+        ...state,
+        loading: true,
+      };
+    case FETCH_USERS_SUCCESSED:
+      return {
+        loading: false,
+        users: action.payload,
+        error: "",
+      };
+    case FETCH_USERS_FAILED:
+      return {
+        loading: false,
+        users: [],
+        error: action.payload,
+      };
     default:
       return state;
   }
 };
 
-const store = createStore(shopReducer, applyMiddleware(logger));
-console.log("Initial state : ", store.getState());
-// store.subscribe(() => {
-//   console.log("Updated state : ", store.getState());
-// });
+const fetchUsers = () => {
+  return function (dispatch) {
+    dispatch(fetchUsersRequest());
+    axios
+      .get("https://jsonplaceholder.typicode.com/users")
+      .then((response) => {
+        dispatch(fetchUsersSuccess(response.data));
+      })
+      .catch((error) => {
+        dispatch(fetchUsersFailure(error.message));
+      });
+  };
+};
 
-store.dispatch(changeStreet("jl. ABC, No.3"));
-store.dispatch(changeStreet("jl. ABC, No.4"));
+const store = createStore(reducer, applyMiddleware(thunk));
+store.subscribe(() => console.log(store.getState()));
+
+store.dispatch(fetchUsers());
 
 function App() {
   return <div></div>;
