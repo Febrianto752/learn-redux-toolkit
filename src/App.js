@@ -1,98 +1,52 @@
 import "./App.css";
-import { createStore, bindActionCreators, combineReducers } from "redux";
+import { applyMiddleware, createStore } from "redux";
+import produce from "immer";
+import logger from "redux-logger";
 
-// create action
-const orderCake = () => {
+const changeStreet = (street) => {
   return {
-    type: "ORDERED_CAKE",
-    payload: 1,
+    type: "CHANGE_STREET",
+    payload: street,
   };
 };
 
-const restockCake = (sum) => {
-  return {
-    type: "RESTOCK_CAKE",
-    payload: sum,
-  };
+const initialState = {
+  name: "FShop",
+  address: {
+    street: "jl.kambuna",
+    city: "Bekasi",
+    country: "Indonesian",
+  },
 };
 
-const orderIceCream = () => {
-  return {
-    type: "ORDER_ICECREAM",
-    payload: 1,
-  };
-};
-
-const restockIceCream = (sum) => {
-  return {
-    type: "RESTOCK_ICECREAM",
-    payload: sum,
-  };
-};
-
-// const initialState = {
-//   numOfCakes: 10,
-//   numOfIceCreams: 0,
-// };
-
-const initialCakeState = {
-  numOfCakes: 10,
-};
-
-const initialIceCreamState = {
-  numOfIceCreams: 5,
-};
-
-// create reducer
-const cakeReducer = (state = initialCakeState, action) => {
+const shopReducer = (state = initialState, action) => {
   switch (action.type) {
-    case "ORDERED_CAKE":
-      return {
-        ...state,
-        numOfCakes: state.numOfCakes - 1,
-      };
-    case "RESTOCK_CAKE":
-      return {
-        ...state,
-        numOfCakes: state.numOfCakes + action.payload,
-      };
+    case "CHANGE_STREET":
+      // Sebelum memakai immer
+      // return {
+      //   ...state,
+      //   address: {
+      //     ...state.address,
+      //     street: action.payload,
+      //   },
+      // };
+      // Sesudah memakai immer
+      return produce(state, (draft) => {
+        draft.address.street = action.payload;
+      });
     default:
       return state;
   }
 };
 
-const iceCreamReducer = (state = initialIceCreamState, action) => {
-  switch (action.type) {
-    case "ORDER_ICECREAM":
-      return {
-        numOfIceCreams: state.numOfIceCreams - 1,
-      };
-    case "RESTOCK_ICECREAM":
-      return {
-        numOfIceCreams: state.numOfIceCreams + action.payload,
-      };
-    default:
-      return state;
-  }
-};
+const store = createStore(shopReducer, applyMiddleware(logger));
+console.log("Initial state : ", store.getState());
+// store.subscribe(() => {
+//   console.log("Updated state : ", store.getState());
+// });
 
-const reducers = combineReducers({
-  cake: cakeReducer,
-  iceCream: iceCreamReducer,
-});
-
-// create store
-const store = createStore(reducers);
-console.log("Initial State : ", store.getState());
-
-store.subscribe(() => console.log("Updated State : ", store.getState())); // selalu di jalankan ketika dispatch(action())
-store.dispatch(orderCake()); // setiap kali dispatch(action()) maka state akan terupdate sesuai dengan logic yang ada di reducer
-store.dispatch(orderCake());
-store.dispatch(orderCake());
-store.dispatch(restockCake(5));
-store.dispatch(orderIceCream());
-store.dispatch(orderIceCream());
-store.dispatch(restockIceCream(5));
+store.dispatch(changeStreet("jl. ABC, No.3"));
+store.dispatch(changeStreet("jl. ABC, No.4"));
 
 function App() {
   return <div></div>;
