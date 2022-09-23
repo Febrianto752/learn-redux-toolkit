@@ -1,22 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
+import cakeReducer from "../features/cake/cakeSlice";
+import iceCreamReducer from "../features/ice_cream/iceCreamSlice";
 
-const initialState = {
-  numOfCakes: 10,
-};
-
-const cakeSlice = createSlice({
-  name: "cake",
-  initialState,
-  reducers: {
-    ordered: (state) => {
-      state.numOfCakes--;
-    },
-    restocked: (state, action) => {
-      state.numOfCakes += action.payload;
-    },
+const store = configureStore({
+  reducer: {
+    cakes: cakeReducer,
+    iceCreams: iceCreamReducer,
   },
 });
 
-export default cakeSlice.reducer;
-
-export const { ordered, restocked } = cakeSlice.actions;
+export default store;
